@@ -1,0 +1,6 @@
+[params]
+    device = "/dev/input/event3"
+
+[actions]
+    KEY_STOPCD = "echo stop"
+    KEY_PLAYPAUSE = "echo play"
