@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"os/user"
 	"strings"
 )
 
@@ -15,14 +16,30 @@ const (
 	chBuffer = 8
 )
 
+// Search configuration file in:
+// - current directory
+// - then in user home dir
+// - then in /etc dir.
 func initConfig(fn string) {
+	viper.SetConfigName(fn)
+
 	pwd, err := os.Getwd()
 	if err != nil {
 		log.Fatal(err)
 	}
-	viper.SetConfigName(fn)
 	viper.AddConfigPath(pwd)
-	viper.ReadInConfig()
+
+	usr, err := user.Current()
+	if err != nil {
+		log.Fatal(err)
+	}
+	viper.AddConfigPath(usr.HomeDir)
+
+	viper.AddConfigPath("/etc")
+
+	if viper.ReadInConfig() != nil {
+		log.Fatalf("Configuration '%s' was not loaded", fn)
+	}
 	log.Printf("Configuration from %s was loaded\n", viper.ConfigFileUsed())
 }
 
