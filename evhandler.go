@@ -25,6 +25,19 @@ func initConfig(fn string) {
 	log.Printf("Configuration from %s was loaded\n", viper.ConfigFileUsed())
 }
 
+func worker(ch <-chan string) {
+	for cmd := range ch {
+		parts := strings.Fields(cmd)
+		head := parts[0]
+		parts = parts[1:len(parts)]
+		out, err := exec.Command(head, parts...).CombinedOutput()
+		if err != nil {
+			log.Println(err)
+		}
+		log.Println(string(out))
+	}
+}
+
 func main() {
 	initConfig("evhandler")
 	params := viper.GetStringMapString("params")
@@ -55,11 +68,12 @@ func main() {
 
 	info := fmt.Sprintf("bus 0x%04x, vendor 0x%04x, product 0x%04x, version 0x%04x",
 		dev.Bustype, dev.Vendor, dev.Product, dev.Version)
-
 	log.Printf("Device name: %s\n", dev.Name)
 	log.Printf("Device info: %s\n", info)
 	log.Printf("Listening for events ...\n")
 
+	ch := make(chan string)
+	go worker(ch)
 	for {
 		events, err = dev.Read()
 		for _, ev := range events {
@@ -72,14 +86,7 @@ func main() {
 			if evType == evdev.EV_KEY && ev.Value == 1 {
 				if cmd, ok := actions[codeName]; ok {
 					log.Printf("%s was pressed, command = '%s'\n", codeName, cmd)
-					parts := strings.Fields(cmd)
-					head := parts[0]
-					parts = parts[1:len(parts)]
-					out, err := exec.Command(head, parts...).Output()
-					if err != nil {
-						log.Println(err)
-					}
-					log.Println(string(out))
+					ch <- cmd
 				}
 			}
 		}
