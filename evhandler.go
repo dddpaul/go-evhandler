@@ -11,7 +11,8 @@ import (
 )
 
 const (
-	usage = "usage: evhandler [device name]"
+	usage    = "usage: evhandler [device name]"
+	chBuffer = 8
 )
 
 func initConfig(fn string) {
@@ -72,7 +73,7 @@ func main() {
 	log.Printf("Device info: %s\n", info)
 	log.Printf("Listening for events ...\n")
 
-	ch := make(chan string)
+	ch := make(chan string, chBuffer)
 	go worker(ch)
 	for {
 		events, err = dev.Read()
