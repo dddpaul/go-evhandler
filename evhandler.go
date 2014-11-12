@@ -35,7 +35,7 @@ func worker(ch <-chan string) {
 		if err != nil {
 			log.Println(err)
 		}
-		log.Println(string(out))
+		fmt.Println(string(out))
 	}
 }
 
@@ -86,7 +86,7 @@ func main() {
 			}
 			if evType == evdev.EV_KEY && ev.Value == 1 {
 				if cmd, ok := actions[codeName]; ok {
-					log.Printf("%s was pressed, command = '%s'\n", codeName, cmd)
+					log.Printf("%s was pressed, executing '%s'\n", codeName, cmd)
 					ch <- cmd
 				}
 			}
